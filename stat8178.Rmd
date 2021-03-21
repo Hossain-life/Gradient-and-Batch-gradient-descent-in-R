@@ -1,0 +1,453 @@
+---
+title: "STAT8178"
+author: "Masroor Hossain(45765758)"
+date: "11/03/2021"
+output: pdf_document
+---
+
+
+
+1 a) $\frac{\partial}{\partial \theta}L(\theta)=\frac{2}{m}\sum\limits_{i=1}^{n} {(y_i-\theta*x_i)(0-(0+x_i))}$
+     $\frac{\partial}{\partial \theta}L(\theta)=\frac{2}{m}*\sum\limits_{i=1}^{n}{(y_i-\theta*x_i)(0-(0+x_i))}$
+     $\frac{\partial}{\partial \theta}L(\theta)=\frac{2}{m}*\sum\limits_{i=1}^{n}{(y_i-\theta*x_i)(-x_i)}$
+     $\frac{\partial}{\partial \theta}L(\theta)=\frac{2}{m}*\sum\limits_{i=1}^{n}{(-y_ix_i+\theta*x_i^2)}$
+     $\frac{\partial}{\partial \theta}L(\theta)=\frac{2}{m}[\theta\sum\limits_{i=1}^{n}{x_i^2}-\sum\limits_{i=1}^{n}{x_iy_i}]$
+     
+     
+After this, we will calculate $\triangledown{L(z)}$ and we represent it in terms of UXX and UXY, we get,
+
+  $\triangledown{L(z)}=\frac{2}{m}[\theta\sum\limits_{i=1}^{n}{x_i^2}-\sum\limits_{i=1}^{n}{x_iy_i}]$
+    
+    
+1 b) $\theta_k+1=\theta_k-\eta*\frac{\partial}{\partial \theta}L(\theta)$
+
+     
+$\theta_k+1=\theta_k-\eta*\frac{2}{m}[\theta\sum\limits_{i=1}^{n}{x_i^2}-\sum\limits_{i=1}^{n}{x_iy_i}]$
+  
+ 
+
+$\theta_k+1=\theta_k+\eta*\frac{2}{m}[\sum\limits_{i=1}^{n}{x_iy_i}-\theta\sum\limits_{i=1}^{n}{x_i^2}]$  
+
+
+  
+     
+where,     
+     $a=1$
+     $b=\eta*\frac{2}{m}[\sum\limits_{i=1}^{n}{x_iy_i}-\theta\sum\limits_{i=1}^{n}{x_i^2}]$
+     
+     
+1 c)
+
+
+$\theta_k+1=\theta_k-\eta*\frac{2}{m}[\theta\sum\limits_{i=1}^{n}{x_i^2}-\sum\limits_{i=1}^{n}{x_iy_i}]$
+
+So, in order to converge, 
+
+Learning rate, $\eta$ should be equal to 1/UXX where $U_{xx}=\sum\limits_{i=1}^{n}{x_i^2}$.
+Here, i can be be 1,2,3,4...,n .For increased number of xis, we get exponentially diminishing value of eta, i.e. a convergence case. For example, for x=1,2,3,4 and 5, we get an eta value of 0.01818182.
+
+
+1 d) 
+
+As given in the question, we perform this operation.
+
+
+```{r}
+x <- rbind(1,2,3,4,5)
+x
+
+y <- rbind(0.9,2.1,3.1,3.9,5.1)
+y
+
+
+```
+
+
+
+Eta corresponds to 90 percent of the maximally possible learning rate.
+
+
+
+```{r}
+
+eta <- 0.90*1/(1^2+2^2+3^2+4^2+5^2)
+
+eta
+```
+
+I took help from this following link(https://www.r-bloggers.com/2012/07/linear-regression-by-gradient-descent/) for code development.
+
+
+```{r}
+cost <- function(X, y, theta) {
+  sum( (X %*% theta - y)^2 ) / (2*length(y))
+}
+# learning rate and iteration limit
+num_iters <- 1000
+# keep history
+cost_history <- double(num_iters)
+theta_history <-rep(0,,num_iters)
+# initialize coefficients
+theta <- 0
+
+for (i in 1:num_iters) {
+ error <- (x %*% theta - y)
+ delta <- (t(x) %*% error) / length(y)
+ theta <- theta - eta * delta
+ cost_history[i] <- cost(x, y, theta)
+ theta_history[i] <- theta
+}
+
+print(theta)
+```
+
+
+
+
+
+```{r}
+
+plot(cost_history,main="model (line of best fit)")
+plot(theta_history,main="trajectory of theta-k during learning process",col="red")
+#abline(theta_history,col="red")
+```
+
+
+
+
+
+      
+2 a)
+```{r}
+a <- read.delim("C:/Users/Roshni/Downloads/planar_solar.txt", header = TRUE, sep = ",")
+head(a)
+```
+
+
+2 a)
+```{r}
+z <- data.frame(X=as.matrix(a$X),x1=as.matrix(a$x1),x2=as.matrix(a$x2), y=as.matrix(a$y))
+head(z)
+```
+
+
+2 a) 
+```{r}
+drop <- c("X")
+df = z[,!(names(z) %in% drop)]
+head(df)
+```
+
+2 a)
+
+```{r}
+dt = sort(sample(nrow(df), nrow(df)*.8))
+train <- df[dt,]
+test <- df[-dt,]
+```
+
+```{r}
+dim(train)
+
+dim(test)
+```
+
+
+```{r}
+head(train)
+```
+
+
+
+
+
+```{r}
+head(test)
+```
+
+
+We draw a histogram
+
+```{r,warning=FALSE}
+hist(train$x1,data=train)
+hist(train$x2,data=train)
+
+```
+
+
+
+```{r,warning=FALSE}
+hist(test$x1,data=test)
+hist(test$x2,data=test)
+```
+Drawing the histogram of both the training and test sets, we can see that they are normally distributed having zero mean values and similar class frequency distribution. Thus, we can say that training and test sets are being split randomly.
+
+
+2 b)
+
+
+```{r}
+model <- glm(y~x1+x2,family=binomial(link='logit'),data=train)
+summary(model)
+```
+
+2 c)
+```{r}
+test[1:2,]
+```
+
+```{r}
+
+# Use your model to make predictions, in this example newdata = training set, but replace with your test set    
+pdata <- predict(model, newdata = test, type = "response")
+head(pdata,2)
+
+```
+2 c)
+
+
+This gives the confusion matrix
+```{r}
+p.rd <- ifelse(pdata > 0.5, 1, 0)
+
+head(p.rd, 2)
+```
+
+```{r}
+table(p.rd, test[,3])
+```
+
+
+$Misclassification \ rate=\frac{FN+FP}{TN+FN+TP+FP}=\frac{24+13}{18+24+25+13}=\frac{37}{80}=0.4625$
+$accuracy=1-\frac{37}{80}$
+$accuracy=\frac{43}{80}=0.5375$
+
+$Sensitivity=\frac{TP}{TP+FN}=\frac{25}{25+24}=\frac{25}{49}=0.510$
+
+$Specificity=\frac{TN}{TN+FP}=\frac{18}{18+13}=\frac{18}{31}=0.581$
+
+$PPV=\frac{TP}{TP+FP}=\frac{25}{25+13}=\frac{25}{38}=0.658$
+$NPV=\frac{TN}{TN+FN}=\frac{18}{18+24}=\frac{18}{42}=0.429$
+
+$F-score=2*\frac{PPV*TPR}{PPV+TPR}=2*\frac{0.658*0.510}{0.658+0.510}=2*\frac{0.33558}{1.168}=2*0.28751=0.575$
+
+
+2 d)
+
+
+
+
+
+
+
+
+
+```{r}
+Train <- train
+head(Train)
+```
+
+```{r}
+Test1 <- test
+head(Test1)
+```
+
+```{r}
+dim(Train)
+dim(Test1)
+```
+
+
+
+
+
+```{r}
+X <-as.matrix(cbind(rep(1,nrow(Train)),Train[,-3]),ncol=ncol(Train)+1)
+head(X)
+```
+
+
+```{r}
+y <- matrix(Train[,3],ncol=1)
+head(y)
+```
+
+
+```{r}
+theta0 <- matrix(model$coef,ncol=1)
+theta0
+```
+
+```{r}
+n <- 100
+bias <- rnorm(n)
+head(bias)
+```
+
+
+
+
+```{r,warning=FALSE}
+sigmoid <- function(z)
+{
+g <- 1/(1+exp(-z))
+return(g)
+}
+
+
+  
+```
+
+
+```{r,warning=FALSE}
+cost <- function(W1,W2,W3){
+  W <- c(W1,W2,W3)
+  amount <- sum(-y*(X%*%matrix(W,ncol=1)+bias)+log(1+exp(X%*%matrix(W,ncol=1)+bias)))
+  return(amount)
+  
+}
+```
+
+
+
+
+
+```{r,warning=FALSE}
+batch.GD <- function(theta0,Train,alpha,epsilon,iter.max=1500){
+  X <-as.matrix(cbind(rep(1,nrow(Train)),Train[,-3]),ncol=ncol(Train)+1)
+  y <- matrix(Train[,3],ncol=1)
+  tol <- 1
+  iter <-1
+  res.cost <- cost(theta0[1],theta0[2],theta0[3])
+  res.theta0 <- theta0
+  while (tol > epsilon & iter<iter.max) {
+    
+    error <- sigmoid(X%*%matrix(theta0,ncol=1)+bias)-y
+    
+    theta0.up <- theta0 - as.vector(alpha*matrix(error,nrow=1)%*%X)
+    res.theta0 <- cbind(res.theta0,theta0.up)
+    tol <- sum((theta0-theta0.up)**2)^0.5
+    theta0 <- theta0.up
+    cos <- cost(theta0[1],theta0[2],theta0[3])
+    res.cost <- c(res.cost,cos)
+    iter <- iter +1
+    
+    
+  
+  
+  }
+  result <- list(theta0=theta0,res.theta0=res.theta0,res.cost=res.cost,iter=iter,tol.theta0=tol)
+  return(result)
+  
+
+}
+  
+```
+
+
+
+
+
+
+Cost optimum
+
+Here is the code to find the optimized cost
+
+
+```{r,warning=FALSE}
+W <- c(theta0[1],theta0[2],theta0[3])
+am <- sum(-y*(X%*%matrix(W,ncol=1)+bias)+log(1+exp(X%*%matrix(W,ncol=1)+bias)))
+print(am)
+```
+
+
+
+```{r,warning=FALSE}
+
+alpha1 <- 0.0001
+par(mfrow=c(2,2))
+Test <- batch.GD(theta0,Train,alpha=alpha1,epsilon = 0.0000001)
+plot(Test$res.cost,ylab="cost function",xlab="iteration",main="alpha=0.0001",type="l")
+abline(h=am,col="red")
+alpha2 <- 0.005
+Test <- batch.GD(theta0,Train,alpha=alpha2,epsilon=0.0000001)
+plot(Test$res.cost,ylab="cost function",xlab="iteration",main="alpha=0.005",type="l")
+abline(h=am,col="red")
+alpha3 <- 0.001
+Test <- batch.GD(theta0,Train,alpha=alpha3,epsilon = 0.0000001)
+plot(Test$res.cost,ylab="cost function",xlab="iteration",main="alpha=0.001",type="l")
+abline(h=am,col="red")
+alpha4 <- 0.01
+Test <- batch.GD(theta0,Train,alpha=alpha4,epsilon = 0.0000001)
+plot(Test$res.cost,ylab="cost function",xlab="iteration",main="alpha=0.01",type="l")
+abline(h=am,col="red")
+
+```
+
+
+We can see from the plot that with learning rate equal to 0.0001, the batch gradient descent smoothly converges to minimum. But when we increase the learning rate to 0.01, the batch gradient overshoots from minimum, and it takes long time to reach minimum. For learning rate equal to 0.001, the overshooting is much lower, but it still takes long time to converge to minimum.
+
+
+
+2 f)
+
+```{r}
+X1 <-as.matrix(cbind(rep(1,nrow(Test1)),Test1[,-3]),ncol=ncol(Test1)+1)
+head(X1)
+```
+
+```{r}
+y1 <- matrix(Test1[,3],ncol=1)
+head(y1)
+```
+
+```{r}
+Test1$probability <- sigmoid(X1%*%matrix(theta0,ncol=1))-y1
+head(Test1$probability)
+```
+
+
+
+
+```{r}
+predicted <- predict(model, Test1,type="response")
+head(predicted)
+```
+
+
+```{r}
+p.rd3 <- ifelse(predicted > 0.5, 1, 0)
+
+head(p.rd3)
+```
+
+```{r}
+table(p.rd3, Test1$y)
+```
+  
+$Misclassification \ rate=\frac{FN+FP}{TN+FN+TP+FP}=\frac{23+16}{18+23+23+16}=\frac{39}{80}=0.4875$
+$accuracy=1-\frac{39}{80}$
+$accuracy=\frac{41}{80}=0.5125$
+
+$Sensitivity=\frac{TP}{TP+FN}=\frac{23}{23+23}=\frac{23}{46}=0.5$
+
+$Specificity=\frac{TN}{TN+FP}=\frac{18}{18+16}=\frac{18}{34}=0.529$
+
+$PPV=\frac{TP}{TP+FP}=\frac{23}{23+16}=\frac{23}{39}=0.5897$
+$NPV=\frac{TN}{TN+FN}=\frac{18}{18+23}=\frac{18}{41}=0.439$
+
+$F-score=2*\frac{PPV*TPR}{PPV+TPR}=2*\frac{0.5897*0.5}{0.5897+0.5}=2*\frac{0.29485}{1.0897}=2*0.27058=0.54116$   
+    
+
+
+
+The accuracy and F-score of logistic regression and batch gradient descent classifier are almost similar, but the accuracy of logistic regression classifier is slightly higher.
+
+
+
+
+
+
+
+
+
